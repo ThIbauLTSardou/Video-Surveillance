@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Système de Surveillance - Recherche IA</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        .link{
+            color: black;
+            text-decoration: none;
+        }
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            height: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 300;
+        }
+
+        .search-panel {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 9px 12px;
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            transition: border-color 0.2s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #555;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #444;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+
+        select option {
+            background: #000;
+            color: #fff;
+        }
+
+        textarea {
+            min-height: 60px;
+            resize: none;
+        }
+
+        .grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .grid-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .grid-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .grid-4 {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+        }
+
+        .search-button {
+            width: 100%;
+            padding: 12px;
+            background: #fff;
+            border: none;
+            border-radius: 6px;
+            color: #000;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 16px;
+        }
+
+        .search-button:hover {
+            background: #e6e6e6;
+        }
+
+        .search-button:active {
+            transform: scale(0.98);
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section:last-of-type {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            color: #fff;
+            font-weight: 500;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #222;
+        }
+
+        /* Scrollbar personnalisée */
+        .search-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .search-panel::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        .search-panel::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        .search-panel::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2,
+            .grid-3,
+            .grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Recherche par IA</h1>
+            <p class="subtitle">Description de la personne recherchée</p>
+        </div>
+
+        <div class="search-panel">
+            <form id="searchForm">
+                <!-- Section 1 -->
+                <div class="section">
+                    <div class="section-title">Informations générales</div>
+                    <div class="grid grid-4">
+                        <div class="form-group">
+                            <label for="sexe">Sexe</label>
+                            <select id="sexe" name="sexe">
+                                <option value="">Non spécifié</option>
+                                <option value="homme">Homme</option>
+                                <option value="femme">Femme</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="age">Âge</label>
+                            <input type="text" id="age" name="age" value="12" placeholder="25-30 ans">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="taille" value="Petite">Taille</label>
+                            <select id="taille" name="taille">
+                                <option value="">Non spécifié</option>
+                                <option value="petite">Petite</option>
+                                <option value="moyenne">Moyenne</option>
+                                <option value="grande">Grande</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="corpulence" value="Moyenne">Corpulence</label>
+                            <select id="corpulence" name="corpulence">
+                                <option value="">Non spécifié</option>
+                                <option value="mince">Mince</option>
+                                <option value="moyenne">Moyenne</option>
+                                <option value="forte">Forte</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2 -->
+                <div class="section">
+                    <div class="section-title">Apparence physique</div>
+                    <div class="grid grid-4">
+                        <div class="form-group">
+                            <label for="cheveux">Cheveux</label>
+                            <select id="cheveux" name="cheveux">
+                                <option value="">Non spécifié</option>
+                                <option value="noirs">Noirs</option>
+                                <option value="bruns">Bruns</option>
+                                <option value="chatains">Châtains</option>
+                                <option value="blonds">Blonds</option>
+                                <option value="roux">Roux</option>
+                                <option value="gris">Gris/Blancs</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="longueur-cheveux">Longueur</label>
+                            <select id="longueur-cheveux" name="longueur-cheveux">
+                                <option value="">Non spécifié</option>
+                                <option value="courts">Courts</option>
+                                <option value="mi-longs">Mi-longs</option>
+                                <option value="longs">Longs</option>
+                                <option value="rases">Rasés</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="barbe">Pilosité faciale</label>
+                            <select id="barbe" name="barbe">
+                                <option value="">Non spécifié</option>
+                                <option value="rase">Rasé</option>
+                                <option value="barbe-courte">Barbe courte</option>
+                                <option value="barbe-longue">Barbe longue</option>
+                                <option value="moustache">Moustache</option>
+                            </select>
+                        </div>
+
+                        
+                    </div>
+                </div>
+
+                <!-- Section 3 -->
+                <div class="section">
+                    <div class="section-title">Vêtements</div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label for="haut">Haut</label>
+                            <input type="text" id="haut" name="haut" placeholder="Veste, T-shirt...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="couleur-haut">Couleur haut</label>
+                            <input type="text" id="couleur-haut" name="couleur-haut" placeholder="Noir, Bleu...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bas">Bas</label>
+                            <input type="text" id="bas" name="bas" placeholder="Jean, Pantalon...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="couleur-bas">Couleur bas</label>
+                            <input type="text" id="couleur-bas" name="couleur-bas" placeholder="Bleu, Noir...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4 -->
+                <div class="section">
+                    <div class="section-title">Description complémentaire</div>
+                    <div class="form-group">
+                        <label for="description">Détails supplémentaires</label>
+                        <textarea id="description" name="description" placeholder="Signes distinctifs, objets transportés, démarche, comportement..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="search-button">Lancer la recherche</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            function getVal(id) {
+                const el = document.getElementById(id);
+                return el ? el.value : '';
+            }
+
+            const formData = {
+                sexe: getVal('sexe'),
+                age: getVal('age'),
+                taille: getVal('taille'),
+                corpulence: getVal('corpulence'),
+                cheveux: getVal('cheveux'),
+                longueurCheveux: getVal('longueur-cheveux'),
+                barbe: getVal('barbe'),
+                accessoiresTete: getVal('accessoires-tete'),
+                haut: getVal('haut'),
+                couleurHaut: getVal('couleur-haut'),
+                bas: getVal('bas'),
+                couleurBas: getVal('couleur-bas'),
+                description: getVal('description')
+            };
+
+            console.log('Recherche IA lancée avec les données:', formData);
+
+            const button = document.querySelector('.search-button');
+            if (button) {
+                button.textContent = 'Recherche en cours...';
+                button.style.opacity = '0.7';
+            }
+
+            // Simule un traitement puis redirige vers l'interface des caméras
+            setTimeout(() => {
+                if (button) {
+                    button.textContent = 'Lancer la recherche';
+                    button.style.opacity = '1';
+                }
+                window.location.href = './surveillance-cameras-interface.html';
+            }, 1200);
+        });
+    </script>
+</body>
+</html>
