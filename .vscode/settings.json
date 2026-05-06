@@ -1,0 +1,14 @@
+{
+  "liveServer.settings.multiRootWorkspaceName": "Video_surveillance",
+  "liveServer.settings.useWebSocket": false,
+  "liveServer.settings.NoBrowser": false,
+  "liveServer.settings.donotShowInfoMsg": true,
+  "liveServer.settings.wait": 0,
+  "liveServer.settings.ignoreFiles": [
+    "**/*.html",
+    "**/*.css",
+    "**/*.js",
+    "**/*"
+  ],
+  "files.autoSave": "off"
+}

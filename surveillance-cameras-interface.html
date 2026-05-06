@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Système de Surveillance - Caméras</title>
+    <title> Système de Surveillance - Caméras </title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.4.2/aframe.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
@@ -292,6 +292,26 @@
             font-size: 0.75rem; color: rgba(255,255,255,0.4);
             line-height: 1;
         }
+
+        /* ── Snapshot flash ── */
+        .snapshot-flash {
+            position: fixed; inset: 0; background: #fff;
+            opacity: 0; pointer-events: none; z-index: 9999;
+            transition: opacity 0.05s ease;
+        }
+        .snapshot-flash.active { opacity: 0.85; }
+
+        .snapshot-toast {
+            position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+            background: rgba(10,10,10,0.92); border: 1px solid #fff;
+            border-radius: 8px; padding: 8px 20px;
+            font-family: 'Courier New', monospace; font-size: 0.72rem;
+            color: #fff; letter-spacing: 0.08em; z-index: 9998;
+            opacity: 0; transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        .snapshot-toast.visible { opacity: 1; }
+
     </style>
 </head>
 <body>
@@ -333,7 +353,7 @@
                 <a-assets>
                     <video id="video360-0"
                         src="./img/Trip to Tokyo, Japan. Aerial 360 video in 8K..mp4"
-                        loop muted playsinline crossorigin="anonymous" preload="auto">
+                        loop muted playsinline preload="auto">
                     </video>
                 </a-assets>
                 <a-videosphere src="#video360-0" rotation="0 -90 0"></a-videosphere>
@@ -386,7 +406,7 @@
                 <a-assets>
                     <video id="video360-1"
                         src="./img/3D 360 VR skydiving experience with the Vuze camera (4K).mp4"
-                        loop muted playsinline crossorigin="anonymous" preload="auto">
+                        loop muted playsinline preload="auto">
                     </video>
                 </a-assets>
                 <a-videosphere src="#video360-1" rotation="0 -90 0"></a-videosphere>
@@ -439,7 +459,7 @@
                 <a-assets>
                     <video id="video360-2"
                         src="./img/Lions 360°  National Geographic.mp4"
-                        loop muted playsinline crossorigin="anonymous" preload="auto">
+                        loop muted playsinline preload="auto">
                     </video>
                 </a-assets>
                 <a-videosphere src="#video360-2" rotation="0 -90 0"></a-videosphere>
@@ -492,7 +512,7 @@
                 <a-assets>
                     <video id="video360-3"
                         src="./img/VR 360° Tung Tung Tung Sahur HUNTS YOU!.mp4"
-                        loop muted playsinline crossorigin="anonymous" preload="auto">
+                        loop muted playsinline preload="auto">
                     </video>
                 </a-assets>
                 <a-videosphere src="#video360-3" rotation="0 -90 0"></a-videosphere>
@@ -528,6 +548,11 @@
     </div>
 
 </div>
+
+<!-- ── Snapshot flash overlay ── -->
+<div class="snapshot-flash" id="snapshotFlash"></div>
+<div class="snapshot-toast" id="snapshotToast">CAPTURE ENVOYÉE À L'IMPRIMANTE</div>
+
 
 <!-- ── Debug boutons ── -->
 <div id="btnDebug">
@@ -841,6 +866,7 @@ window.addEventListener('keydown', e => {
     if (e.key === 'Escape') setMode('nav');
     if (e.key === '+' || e.key === '=') { applyZoom(selectedIndex, -5); scheduleHideZoomGauge(selectedIndex); }
     if (e.key === '-')                   { applyZoom(selectedIndex, +5); scheduleHideZoomGauge(selectedIndex); }
+    if (e.key === 'i' || e.key === 'I')  { e.preventDefault(); captureAndPrint(selectedIndex); }
 });
 
 // ══════════════════════════════════════════════════════
@@ -974,6 +1000,71 @@ function gamepadLoop() {
 
     lastAxisState = { x: axisX, y: axisY };
     requestAnimationFrame(gamepadLoop);
+}
+
+// ══════════════════════════════════════════════════════
+//  CAPTURE & PRINT (touche I)
+// ══════════════════════════════════════════════════════
+let snapshotToastTimer = null;
+
+function captureAndPrint(idx) {
+    // Capture la frame vidéo brute via un canvas 2D
+    const vid = getVideo(idx);
+    let dataUrl = null;
+
+    if (vid && vid.readyState >= 2) {
+        const tmp = document.createElement('canvas');
+        tmp.width  = vid.videoWidth  || 1280;
+        tmp.height = vid.videoHeight || 720;
+        const ctx = tmp.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(vid, 0, 0, tmp.width, tmp.height);
+        dataUrl = tmp.toDataURL('image/jpeg', 0.92);
+    }
+
+    if (!dataUrl) {
+        console.warn('Snapshot: vidéo non prête (readyState=' + (vid ? vid.readyState : 'null') + ')');
+        return;
+    }
+
+    // 2. Flash blanc
+    const flash = document.getElementById('snapshotFlash');
+    flash.classList.add('active');
+    setTimeout(() => flash.classList.remove('active'), 200);
+
+    // 3. Toast
+    const toast = document.getElementById('snapshotToast');
+    clearTimeout(snapshotToastTimer);
+    toast.classList.add('visible');
+    snapshotToastTimer = setTimeout(() => toast.classList.remove('visible'), 2500);
+
+    // 4. Métadonnées
+    const feed = document.querySelector(`.camera-feed[data-index="${idx}"]`);
+    const loc  = feed ? (feed.querySelector('.location-tag')?.textContent || '') : '';
+    const now  = new Date().toLocaleString('fr-FR');
+    const meta = `CAM ${String(idx + 1).padStart(2,'0')}  ·  ${loc}  ·  ${now}`;
+
+    // 5. Ouvre une fenêtre popup avec uniquement l'image et lance l'impression
+    const pw = window.open('', '_blank', 'width=900,height=700');
+    if (!pw) { console.warn('Popup bloqué par le navigateur'); return; }
+
+    const pd = pw.document;
+
+    const style = pd.createElement('style');
+    style.textContent = '* { margin:0; padding:0; box-sizing:border-box; } body { text-align:center; font-family:"Courier New",monospace; } img { max-width:100%; } p { font-size:9pt; margin-top:6px; color:#000; }';
+    pd.head.appendChild(style);
+
+    const img = pd.createElement('img');
+    img.src = dataUrl;
+    pd.body.appendChild(img);
+
+    const p = pd.createElement('p');
+    p.textContent = meta;
+    pd.body.appendChild(p);
+
+    setTimeout(function() {
+        pw.print();
+        setTimeout(function() { pw.close(); }, 500);
+    }, 300);
 }
 </script>
 </body>

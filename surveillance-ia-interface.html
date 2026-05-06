@@ -3,383 +3,627 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Système de Surveillance - Recherche IA</title>
+    <title>Recherche IA — Système de Vidéosurveillance</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Marianne:wght@300;400;500;700&family=Spectral:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --blue-france: #003189;
+            --blue-france-hover: #1e3a8a;
+            --blue-france-light: #e8edff;
+            --red-marianne: #e1000f;
+            --grey-50: #f6f6f6;
+            --grey-200: #e5e5e5;
+            --grey-400: #929292;
+            --grey-600: #666666;
+            --grey-800: #3a3a3a;
+            --grey-900: #161616;
+            --white: #ffffff;
+            --success: #18753c;
+            --warning: #b34000;
+            --info: #0063cb;
+            --font-main: 'Marianne', Arial, sans-serif;
+            --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px;
+            --s-5: 24px; --s-6: 32px;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: #000;
-            color: #fff;
+            font-family: var(--font-main);
+            background: var(--grey-50);
+            color: var(--grey-900);
             height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow: hidden;
-        }
-        .link{
-            color: black;
-            text-decoration: none;
-        }
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            height: 100%;
-            max-height: 90vh;
-            display: flex;
             flex-direction: column;
+            overflow: hidden;
+            font-size: 14px;
         }
 
-        .header {
-            margin-bottom: 20px;
+        /* ── En-tête ── */
+        .rf-header {
+            background: var(--white);
+            border-bottom: 3px solid var(--blue-france);
+            padding: var(--s-3) var(--s-5);
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 4px rgba(0,0,50,0.08);
+        }
+        .rf-header-main { display: flex; align-items: center; gap: var(--s-5); }
+        .rf-logo-block {
+            display: flex; align-items: center; gap: var(--s-3);
+            border-right: 1px solid var(--grey-200); padding-right: var(--s-5);
+        }
+        .rf-logo-marianne { width: 32px; height: 32px; }
+        .rf-logo-text { line-height: 1.2; }
+        .rf-logo-text strong {
+            display: block; font-size: 12px; font-weight: 700;
+            color: var(--blue-france); text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .rf-logo-text span { display: block; font-size: 10px; color: var(--grey-600); font-weight: 400; }
+        .rf-page-title { line-height: 1.2; }
+        .rf-page-title h1 { font-size: 15px; font-weight: 700; color: var(--grey-900); letter-spacing: -0.01em; }
+        .rf-page-title .rf-subtitle { font-size: 11px; color: var(--grey-600); font-weight: 400; }
+        .rf-header-controls { display: flex; align-items: center; gap: var(--s-4); }
+
+        .rf-badge {
+            display: inline-flex; align-items: center; gap: var(--s-1);
+            padding: 3px 10px; border-radius: 2px; font-size: 10px;
+            font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+        }
+        .rf-badge-info { background: var(--blue-france-light); color: var(--blue-france); border: 1px solid #c5d0f0; }
+        .rf-timestamp-live {
+            font-family: 'Courier New', monospace; font-size: 11px; color: var(--grey-600);
+            border: 1px solid var(--grey-200); padding: 3px 10px; border-radius: 2px; background: var(--grey-50);
         }
 
-        h1 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 4px;
-            letter-spacing: -0.02em;
+        /* ── Toolbar / onglets principaux ── */
+        .rf-toolbar {
+            background: var(--white); border-bottom: 1px solid var(--grey-200);
+            padding: 0 var(--s-5); height: 40px; display: flex;
+            align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .rf-toolbar-left { display: flex; align-items: stretch; height: 100%; }
+        .rf-tab {
+            padding: 0 var(--s-4); font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+            text-transform: uppercase; color: var(--grey-600); background: transparent; border: none;
+            cursor: pointer; display: flex; align-items: center; gap: var(--s-2);
+            border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+            font-family: var(--font-main); white-space: nowrap;
+        }
+        .rf-tab:hover { color: var(--blue-france); }
+        .rf-tab.active { color: var(--blue-france); border-bottom-color: var(--blue-france); }
+
+        /* ── Contenu principal ── */
+        .rf-main {
+            flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+        }
+        .rf-main-panel { display: none; flex: 1; flex-direction: column; min-height: 0; }
+        .rf-main-panel.active { display: flex; }
+
+        /* ── Onglets secondaires (Personne / Véhicule) ── */
+        .rf-subtabs {
+            display: flex; align-items: stretch; height: 36px;
+            background: var(--white); border-bottom: 1px solid var(--grey-200);
+            padding: 0 var(--s-5); flex-shrink: 0;
+        }
+        .rf-subtab {
+            padding: 0 var(--s-4); font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+            text-transform: uppercase; color: var(--grey-600); background: transparent; border: none;
+            cursor: pointer; display: flex; align-items: center; gap: var(--s-2);
+            border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+            font-family: var(--font-main);
+        }
+        .rf-subtab:hover { color: var(--info); }
+        .rf-subtab.active { color: var(--info); border-bottom-color: var(--info); }
+
+        .rf-subpanel { display: none; }
+        .rf-subpanel.active { display: block; }
+
+        /* ── Panneau formulaire ── */
+        .rf-form-wrap {
+            flex: 1; overflow-y: auto; padding: var(--s-5);
+        }
+        .rf-form-wrap::-webkit-scrollbar { width: 5px; }
+        .rf-form-wrap::-webkit-scrollbar-track { background: var(--grey-50); }
+        .rf-form-wrap::-webkit-scrollbar-thumb { background: var(--grey-200); border-radius: 2px; }
+
+        .rf-form-card {
+            background: var(--white); border: 1px solid var(--grey-200);
+            border-radius: 3px; padding: var(--s-5); max-width: 900px; margin: 0 auto;
         }
 
-        .subtitle {
-            font-size: 0.8rem;
-            color: #888;
-            font-weight: 300;
+        /* ── Sections ── */
+        .rf-section { margin-bottom: var(--s-5); }
+        .rf-section:last-of-type { margin-bottom: 0; }
+        .rf-section-title {
+            font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--blue-france); margin-bottom: var(--s-3); padding-bottom: var(--s-2);
+            border-bottom: 2px solid var(--blue-france-light);
         }
 
-        .search-panel {
-            background: #0a0a0a;
-            border: 1px solid #222;
-            border-radius: 8px;
-            padding: 24px;
-            flex: 1;
-            overflow-y: auto;
-        }
+        /* ── Champs ── */
+        .rf-grid { display: grid; gap: var(--s-3); }
+        .rf-grid-2 { grid-template-columns: 1fr 1fr; }
+        .rf-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .rf-grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
 
-        .form-group {
-            margin-bottom: 16px;
-        }
+        .rf-form-group { display: flex; flex-direction: column; gap: 5px; }
 
         label {
-            display: block;
-            font-size: 0.7rem;
-            color: #aaa;
-            margin-bottom: 6px;
-            font-weight: 500;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+            text-transform: uppercase; color: var(--grey-600);
         }
 
-        input,
-        select,
-        textarea {
-            width: 100%;
-            padding: 9px 12px;
-            background: #000;
-            border: 1px solid #333;
-            border-radius: 6px;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.85rem;
-            transition: border-color 0.2s ease;
+        input, select, textarea {
+            width: 100%; padding: 8px 10px;
+            background: var(--white); border: 1px solid var(--grey-400);
+            border-radius: 0; color: var(--grey-900);
+            font-family: var(--font-main); font-size: 13px;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #555;
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--blue-france);
+            box-shadow: 0 0 0 2px var(--blue-france-light);
         }
-
-        input::placeholder,
-        textarea::placeholder {
-            color: #444;
-        }
+        input::placeholder, textarea::placeholder { color: var(--grey-400); }
 
         select {
+            cursor: pointer; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px;
+            background-color: var(--white);
+        }
+        select option { background: var(--white); color: var(--grey-900); }
+
+        textarea { min-height: 64px; resize: none; }
+
+        /* ── Bouton submit ── */
+        .rf-submit-btn {
+            display: flex; align-items: center; justify-content: center; gap: var(--s-2);
+            margin-top: var(--s-5); padding: 10px var(--s-5);
+            background: var(--blue-france); border: none; border-radius: 0;
+            color: var(--white); font-family: var(--font-main); font-size: 13px;
+            font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .rf-submit-btn:hover { background: var(--blue-france-hover); }
+        .rf-submit-btn:active { transform: translateY(1px); }
+
+        /* ── Panel carte ── */
+        .rf-map-wrap {
+            flex: 1; display: flex; min-height: 0;
+        }
+        #leaflet-map {
+            flex: 1; width: 100%; height: 100%;
+        }
+
+        /* ── Footer ── */
+        .rf-footer {
+            background: var(--blue-france); padding: 0 var(--s-5); height: 28px;
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .rf-footer-left { display: flex; align-items: center; gap: var(--s-5); }
+        .rf-footer-item {
+            font-size: 9px; color: rgba(255,255,255,0.65); font-family: 'Courier New', monospace;
+            letter-spacing: 0.06em;
+        }
+        .rf-footer-item strong { color: var(--white); }
+        .rf-footer-right { font-size: 9px; color: rgba(255,255,255,0.45); font-family: 'Courier New', monospace; }
+
+        /* ── Écran fin d'enquête ── */
+        #reset-btn {
+            position: fixed;
+            bottom: 12px;
+            right: 12px;
+            z-index: 10000;
+            width: 32px; height: 32px;
+            font-size: 18px;
+            background: rgba(0,0,0,0.05);
+            color: rgba(0,0,0,0.2);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
             cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 36px;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+        #reset-btn:hover {
+            background: rgba(0,0,0,0.12);
+            color: rgba(0,0,0,0.6);
         }
 
-        select option {
-            background: #000;
-            color: #fff;
+        #finEnquete {
+            display: none;
+            position: fixed; inset: 0; z-index: 9999;
+            background: var(--white);
+            flex-direction: column; align-items: center; justify-content: center;
+            gap: var(--s-5); padding: var(--s-7);
+            text-align: center;
         }
-
-        textarea {
-            min-height: 60px;
-            resize: none;
+        #finEnquete.visible { display: flex; }
+        #finEnquete .fin-icon {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: var(--blue-france-light);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px;
         }
-
-        .grid {
-            display: grid;
-            gap: 16px;
+        #finEnquete h2 {
+            font-size: 36px; font-weight: 700; color: var(--blue-france);
+            letter-spacing: -0.02em;
         }
-
-        .grid-2 {
-            grid-template-columns: 1fr 1fr;
+        #finEnquete p {
+            font-size: 22px; color: var(--grey-600); max-width: 680px; line-height: 1.7;
         }
-
-        .grid-3 {
-            grid-template-columns: 1fr 1fr 1fr;
-        }
-
-        .grid-4 {
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-        }
-
-        .search-button {
-            width: 100%;
-            padding: 12px;
-            background: #fff;
-            border: none;
-            border-radius: 6px;
-            color: #000;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: 16px;
-        }
-
-        .search-button:hover {
-            background: #e6e6e6;
-        }
-
-        .search-button:active {
-            transform: scale(0.98);
-        }
-
-        .section {
-            margin-bottom: 20px;
-        }
-
-        .section:last-of-type {
-            margin-bottom: 0;
-        }
-
-        .section-title {
-            font-size: 0.75rem;
-            color: #fff;
-            font-weight: 500;
-            margin-bottom: 12px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #222;
-        }
-
-        /* Scrollbar personnalisée */
-        .search-panel::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .search-panel::-webkit-scrollbar-track {
-            background: #000;
-        }
-
-        .search-panel::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 3px;
-        }
-
-        .search-panel::-webkit-scrollbar-thumb:hover {
-            background: #444;
+        #finEnquete .fin-badge {
+            background: var(--blue-france); color: var(--white);
+            font-size: 18px; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; padding: 16px 40px; border-radius: 2px;
+            border-left: 4px solid var(--red-marianne);
         }
 
         @media (max-width: 768px) {
-            .grid-2,
-            .grid-3,
-            .grid-4 {
-                grid-template-columns: 1fr;
-            }
+            .rf-grid-2, .rf-grid-3, .rf-grid-4 { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Recherche par IA</h1>
-            <p class="subtitle">Description de la personne recherchée</p>
+
+<!-- ── En-tête ── -->
+<div class="rf-header">
+    <div class="rf-header-main">
+        <div class="rf-logo-block">
+            <svg class="rf-logo-marianne" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="16" cy="16" r="15" fill="#003189" stroke="#e5e5e5" stroke-width="1"/>
+                <ellipse cx="16" cy="20" rx="7" ry="5" fill="white" opacity="0.9"/>
+                <circle cx="16" cy="12" r="5" fill="white" opacity="0.9"/>
+                <path d="M11 12 Q16 4 21 12" fill="#e1000f" opacity="0.95"/>
+                <path d="M12 11 Q16 5 20 11" fill="#e1000f"/>
+            </svg>
+            <div class="rf-logo-text">
+                <strong>Vidéosurveillance</strong>
+                <span>Direction centrale du renseignement</span>
+            </div>
+        </div>
+        <div class="rf-page-title">
+            <h1>Recherche par intelligence artificielle</h1>
+            <p class="rf-subtitle">Identification de personnes et de véhicules · Analyse en temps réel</p>
+        </div>
+    </div>
+    <div class="rf-header-controls">
+        <span class="rf-badge rf-badge-info">IA OPÉRATIONNELLE</span>
+        <span class="rf-timestamp-live" id="globalClock">--:--:--</span>
+    </div>
+</div>
+
+<!-- ── Toolbar — onglets principaux ── -->
+<div class="rf-toolbar">
+    <div class="rf-toolbar-left">
+        <button class="rf-tab active" id="tab-recherche" onclick="switchMainTab('recherche', this)">
+            ⊞ Recherche
+        </button>
+        <button class="rf-tab" id="tab-carte" onclick="switchMainTab('carte', this)">
+            ◎ Carte
+        </button>
+    </div>
+</div>
+
+<!-- ── Contenu ── -->
+<div class="rf-main">
+
+    <!-- ── Panel Recherche ── -->
+    <div class="rf-main-panel active" id="main-panel-recherche">
+
+        <!-- Onglets secondaires -->
+        <div class="rf-subtabs">
+            <button class="rf-subtab active" id="subtab-personne" onclick="switchSubTab('personne', this)">
+                👤 Personne
+            </button>
+            <button class="rf-subtab" id="subtab-vehicule" onclick="switchSubTab('vehicule', this)">
+                🚗 Véhicule
+            </button>
         </div>
 
-        <div class="search-panel">
-            <form id="searchForm">
-                <!-- Section 1 -->
-                <div class="section">
-                    <div class="section-title">Informations générales</div>
-                    <div class="grid grid-4">
-                        <div class="form-group">
-                            <label for="sexe">Sexe</label>
-                            <select id="sexe" name="sexe">
-                                <option value="">Non spécifié</option>
-                                <option value="homme">Homme</option>
-                                <option value="femme">Femme</option>
-                            </select>
-                        </div>
+        <div class="rf-form-wrap">
+            <div class="rf-form-card">
 
-                        <div class="form-group">
-                            <label for="age">Âge</label>
-                            <input type="text" id="age" name="age" value="12" placeholder="25-30 ans">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="taille" value="Petite">Taille</label>
-                            <select id="taille" name="taille">
-                                <option value="">Non spécifié</option>
-                                <option value="petite">Petite</option>
-                                <option value="moyenne">Moyenne</option>
-                                <option value="grande">Grande</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="corpulence" value="Moyenne">Corpulence</label>
-                            <select id="corpulence" name="corpulence">
-                                <option value="">Non spécifié</option>
-                                <option value="mince">Mince</option>
-                                <option value="moyenne">Moyenne</option>
-                                <option value="forte">Forte</option>
-                            </select>
+                <!-- Formulaire Personne -->
+                <div class="rf-subpanel active" id="panel-personne">
+                <form id="searchForm">
+                    <div class="rf-section">
+                        <div class="rf-section-title">Localisation &amp; Plage temporelle</div>
+                        <div class="rf-grid rf-grid-2">
+                            <div class="rf-form-group" style="grid-column: span 2;">
+                                <label for="location">Rue ou lieu</label>
+                                <input type="text" id="location" name="location" placeholder="Ex : Rue de la Mairie, Parking Nord...">
+                            </div>
+                            <div class="rf-form-group">
+                                <label for="date">Date</label>
+                                <input type="date" id="date" name="date">
+                            </div>
+                            <div class="rf-form-group">
+                                <label for="time-start">Heure</label>
+                                <input type="time" id="time-start" name="time-start">
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Section 2 -->
-                <div class="section">
-                    <div class="section-title">Apparence physique</div>
-                    <div class="grid grid-4">
-                        <div class="form-group">
-                            <label for="cheveux">Cheveux</label>
-                            <select id="cheveux" name="cheveux">
-                                <option value="">Non spécifié</option>
-                                <option value="noirs">Noirs</option>
-                                <option value="bruns">Bruns</option>
-                                <option value="chatains">Châtains</option>
-                                <option value="blonds">Blonds</option>
-                                <option value="roux">Roux</option>
-                                <option value="gris">Gris/Blancs</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="longueur-cheveux">Longueur</label>
-                            <select id="longueur-cheveux" name="longueur-cheveux">
-                                <option value="">Non spécifié</option>
-                                <option value="courts">Courts</option>
-                                <option value="mi-longs">Mi-longs</option>
-                                <option value="longs">Longs</option>
-                                <option value="rases">Rasés</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="barbe">Pilosité faciale</label>
-                            <select id="barbe" name="barbe">
-                                <option value="">Non spécifié</option>
-                                <option value="rase">Rasé</option>
-                                <option value="barbe-courte">Barbe courte</option>
-                                <option value="barbe-longue">Barbe longue</option>
-                                <option value="moustache">Moustache</option>
-                            </select>
-                        </div>
-
-                        
-                    </div>
-                </div>
-
-                <!-- Section 3 -->
-                <div class="section">
-                    <div class="section-title">Vêtements</div>
-                    <div class="grid grid-2">
-                        <div class="form-group">
-                            <label for="haut">Haut</label>
-                            <input type="text" id="haut" name="haut" placeholder="Veste, T-shirt...">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="couleur-haut">Couleur haut</label>
-                            <input type="text" id="couleur-haut" name="couleur-haut" placeholder="Noir, Bleu...">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="bas">Bas</label>
-                            <input type="text" id="bas" name="bas" placeholder="Jean, Pantalon...">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="couleur-bas">Couleur bas</label>
-                            <input type="text" id="couleur-bas" name="couleur-bas" placeholder="Bleu, Noir...">
+                    <div class="rf-section">
+                        <div class="rf-section-title">Informations générales</div>
+                        <div class="rf-form-group">
+                            <textarea id="infos-generales" name="infos-generales" placeholder="Sexe, âge estimé, taille, corpulence..."></textarea>
                         </div>
                     </div>
-                </div>
 
-                <!-- Section 4 -->
-                <div class="section">
-                    <div class="section-title">Description complémentaire</div>
-                    <div class="form-group">
-                        <label for="description">Détails supplémentaires</label>
-                        <textarea id="description" name="description" placeholder="Signes distinctifs, objets transportés, démarche, comportement..."></textarea>
+                    <div class="rf-section">
+                        <div class="rf-section-title">Apparence physique</div>
+                        <div class="rf-form-group">
+                            <textarea id="apparence" name="apparence" placeholder="Cheveux, pilosité faciale, signes distinctifs..."></textarea>
+                        </div>
                     </div>
+
+                    <div class="rf-section">
+                        <div class="rf-section-title">Vêtements</div>
+                        <div class="rf-form-group">
+                            <textarea id="vetements" name="vetements" placeholder="Haut, bas, chaussures, accessoires..."></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="rf-submit-btn" id="submitBtn">Valider la première étape</button>
+                </form>
                 </div>
 
-                <button type="submit" class="search-button">Lancer la recherche</button>
-            </form>
+                <!-- Formulaire Véhicule -->
+                <div class="rf-subpanel" id="panel-vehicule">
+                <form id="searchFormVehicule">
+                    <div class="rf-section">
+                        <div class="rf-section-title">Identification du véhicule</div>
+                        <div class="rf-grid rf-grid-2">
+                            <div class="rf-form-group">
+                                <label for="plaque">Plaque d'immatriculation</label>
+                                <input type="text" id="plaque" name="plaque" placeholder="AB-123-CD">
+                            </div>
+                            <div class="rf-form-group">
+                                <label for="couleur">Couleur</label>
+                                <input type="text" id="couleur" name="couleur" placeholder="Noir, Blanc, Rouge...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rf-section">
+                        <div class="rf-section-title">Plage horaire</div>
+                        <div class="rf-grid rf-grid-2">
+                            <div class="rf-form-group">
+                                <label for="heure-debut">Heure début</label>
+                                <input type="time" id="heure-debut" name="heure-debut">
+                            </div>
+                            <div class="rf-form-group">
+                                <label for="heure-fin">Heure fin</label>
+                                <input type="time" id="heure-fin" name="heure-fin">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="rf-submit-btn" id="submitBtn">Valider la première étape</button>
+                </form>
+                </div>
+
+            </div>
         </div>
     </div>
 
-    <script>
-        document.getElementById('searchForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+    <!-- ── Panel Carte ── -->
+    <div class="rf-main-panel" id="main-panel-carte">
+        <div class="rf-map-wrap">
+            <div id="leaflet-map"></div>
+        </div>
+    </div>
 
-            function getVal(id) {
-                const el = document.getElementById(id);
-                return el ? el.value : '';
-            }
+</div>
 
-            const formData = {
-                sexe: getVal('sexe'),
-                age: getVal('age'),
-                taille: getVal('taille'),
-                corpulence: getVal('corpulence'),
-                cheveux: getVal('cheveux'),
-                longueurCheveux: getVal('longueur-cheveux'),
-                barbe: getVal('barbe'),
-                accessoiresTete: getVal('accessoires-tete'),
-                haut: getVal('haut'),
-                couleurHaut: getVal('couleur-haut'),
-                bas: getVal('bas'),
-                couleurBas: getVal('couleur-bas'),
-                description: getVal('description')
-            };
+<!-- ── Footer ── -->
+<div class="rf-footer">
+    <div class="rf-footer-left">
+        <div class="rf-footer-item"><strong>OPÉRATEUR :</strong> Agent n°7412</div>
+        <div class="rf-footer-item"><strong>POSTE :</strong> PC-SECU-01</div>
+        <div class="rf-footer-item"><strong>MODULE :</strong> Analyse IA — RGPD Art. L252-1</div>
+    </div>
+    <div class="rf-footer-right">SYSTÈME DE VIDÉOPROTECTION — © MINISTÈRE DE L'INTÉRIEUR 2026</div>
+</div>
 
-            console.log('Recherche IA lancée avec les données:', formData);
+<script>
+    // Horloge
+    function updateClock() {
+        const t = new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        document.getElementById('globalClock').textContent = t;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
 
-            const button = document.querySelector('.search-button');
-            if (button) {
-                button.textContent = 'Recherche en cours...';
-                button.style.opacity = '0.7';
-            }
+    // ── Données caméras et tracé ──
+    const ETAPES = [
+        // Étape 1 — 1er envoi formulaire
+        {
+            cameras: [
+                { label: 'Cam 1 — 4 Hent Kerouandener', coords: [48.7455003, -3.4788234] },
+            ],
+            segments: []
+        },
+        // Étape 2 — 2ème envoi formulaire
+        {
+            cameras: [
+                { label: 'Cam 2 — Route de Trébeurden',  coords: [48.743159,  -3.473209]  },
+                { label: 'Cam 3 — 3 Pl. des Ursulines',  coords: [48.7307422, -3.4544340] },
+                { label: 'Cam 4 — 3 Pl. des Ursulines',  coords: [48.7307422, -3.4544340] },
+            ],
+            segments: [
+                // Cam 1 → Cam 2 : trait bleu
+                { waypoints: [[48.7455003, -3.4788234], [48.743159, -3.473209]], color: '#003189' },
+                // Cam 2 → Cam 3&4 : trait bleu
+                { waypoints: [[48.743159, -3.473209], [48.7307422, -3.4544340]], color: '#003189' }
+            ]
+        },
+        // Étape 3 — 3ème envoi formulaire
+        {
+            cameras: [
+                { label: 'Cam 5 — 17 Quai du Mal. Foch', coords: [48.7319629, -3.4666370] },
+                { label: 'Cam 6 — Parking quai à sable',  coords: [48.736590,  -3.483497]  },
+            ],
+            segments: [
+                // Pl. des Ursulines → Cam 5 : trait rouge
+                { waypoints: [[48.7307422, -3.4544340], [48.7319629, -3.4666370]], color: '#e1000f' },
+                // Cam 5 → Cam 6 : trait rouge
+                { waypoints: [[48.7319629, -3.4666370], [48.736590, -3.483497]], color: '#e1000f' }
+            ]
+        }
+    ];
 
-            // Simule un traitement puis redirige vers l'interface des caméras
-            setTimeout(() => {
-                if (button) {
-                    button.textContent = 'Lancer la recherche';
-                    button.style.opacity = '1';
-                }
-                window.location.href = './surveillance-cameras-interface.html';
-            }, 1200);
+    // Récupère un itinéraire routier via OSRM et trace la polyline
+    async function traceRoute(waypoints, color) {
+        // OSRM attend les coordonnées en lon,lat
+        const coords = waypoints.map(([lat, lon]) => `${lon},${lat}`).join(';');
+        const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+        try {
+            const res  = await fetch(url);
+            const data = await res.json();
+            const latlngs = data.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+            const line = L.polyline(latlngs, { color, weight: 4, opacity: 0.85 }).addTo(leafletMap);
+            linesOnMap.push(line);
+        } catch {
+            // Fallback ligne droite si OSRM échoue
+            const line = L.polyline(waypoints, { color, weight: 4, opacity: 0.85, dashArray: '6,6' }).addTo(leafletMap);
+            linesOnMap.push(line);
+        }
+    }
+
+    // Carte Leaflet — initialisée une seule fois
+    let leafletMap = null;
+    const markersOnMap = [];
+    const linesOnMap   = [];
+
+    function initMap() {
+        if (leafletMap) return;
+        leafletMap = L.map('leaflet-map').setView([48.7380, -3.4680], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19
+        }).addTo(leafletMap);
+
+        // Affiche les étapes déjà atteintes si on revient sur la carte après des soumissions
+        for (let i = 0; i < etapeCourante; i++) renderEtape(i);
+    }
+
+    function renderEtape(index) {
+        if (!leafletMap || index >= ETAPES.length) return;
+        const etape = ETAPES[index];
+
+        etape.cameras.forEach(cam => {
+            const marker = L.circleMarker(cam.coords, {
+                radius: 8, color: '#003189', fillColor: '#fff',
+                fillOpacity: 1, weight: 2
+            }).addTo(leafletMap).bindTooltip(cam.label, { permanent: false, direction: 'top' });
+            markersOnMap.push(marker);
         });
-    </script>
+
+        etape.segments.forEach(seg => traceRoute(seg.waypoints, seg.color));
+    }
+
+    // Onglets principaux
+    function switchMainTab(tab, btn) {
+        document.querySelectorAll('.rf-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.rf-main-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(`main-panel-${tab}`).classList.add('active');
+        btn.classList.add('active');
+        if (tab === 'carte') {
+            initMap();
+            leafletMap.invalidateSize();
+        }
+    }
+
+    // Onglets secondaires
+    function switchSubTab(tab, btn) {
+        document.querySelectorAll('.rf-subtab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.rf-subpanel').forEach(p => p.classList.remove('active'));
+        document.getElementById(`panel-${tab}`).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    // Date du jour par défaut
+    document.getElementById('date').valueAsDate = new Date();
+
+    // Ouvre etat.html une seule fois et remet les étapes à zéro
+    if (!sessionStorage.getItem('etat_opened')) {
+        sessionStorage.setItem('etat_opened', '1');
+        sessionStorage.setItem('etape_courante', '0');
+        window.open('./etat.html', 'etat_tv');
+    }
+
+    // Canal de communication avec etat.html
+    const bc = new BroadcastChannel('surveillance_etapes');
+
+    // Récupère l'étape courante depuis sessionStorage pour ne pas remettre à zéro
+    let etapeCourante = parseInt(sessionStorage.getItem('etape_courante') || '0');
+
+    const etapeLabels = ['Valider la première étape', 'Valider la deuxième étape', 'Valider la troisième étape'];
+
+    function updateSubmitBtn() {
+        const label = etapeLabels[etapeCourante] || etapeLabels[etapeLabels.length - 1];
+        document.querySelectorAll('#submitBtn').forEach(btn => btn.textContent = label);
+    }
+
+    updateSubmitBtn();
+
+    function lancerRecherche(e) {
+        e.preventDefault();
+        if (etapeCourante < 3) {
+            renderEtape(etapeCourante);
+            etapeCourante++;
+            sessionStorage.setItem('etape_courante', etapeCourante);
+            bc.postMessage(etapeCourante);
+            if (etapeCourante === 3) {
+                document.getElementById('finEnquete').classList.add('visible');
+            } else {
+                updateSubmitBtn();
+            }
+        }
+    }
+
+    document.getElementById('searchForm').addEventListener('submit', lancerRecherche);
+    document.getElementById('searchFormVehicule').addEventListener('submit', lancerRecherche);
+
+    function resetPartie() {
+        etapeCourante = 0;
+        sessionStorage.setItem('etape_courante', '0');
+        updateSubmitBtn();
+        document.getElementById('finEnquete').classList.remove('visible');
+        // Efface marqueurs et tracés de la carte
+        markersOnMap.forEach(m => m.remove());
+        markersOnMap.length = 0;
+        linesOnMap.forEach(l => l.remove());
+        linesOnMap.length = 0;
+        // Notifie etat.html
+        bc.postMessage('reset');
+        // Fallback : recharge etat.html directement si la fenêtre est accessible
+        const etatWin = window.open('', 'etat_tv');
+        if (etatWin && !etatWin.closed) {
+            etatWin.location.reload();
+        }
+    }
+
+</script>
+
+<button id="reset-btn" onclick="resetPartie()" title="Recommencer à zéro">↺</button>
+
+<div id="finEnquete">
+    <div class="fin-icon">📋</div>
+    <h2>Analyse terminée</h2>
+    <p>
+        Une fois que vous avez rempli tous les indices à trouver sur le dossier papier,
+        remettez-le à vos collègues afin qu'ils puissent aller investiguer sur le terrain.
+    </p>
+    <div class="fin-badge">Transmettre le dossier aux enquêteurs</div>
+</div>
+
 </body>
 </html>
