@@ -1,0 +1,259 @@
+        :root {
+            --blue-france: #003189;
+            --blue-france-hover: #1e3a8a;
+            --blue-france-light: #e8edff;
+            --red-marianne: #e1000f;
+            --grey-50: #f6f6f6;
+            --grey-200: #e5e5e5;
+            --grey-400: #929292;
+            --grey-600: #666666;
+            --grey-800: #3a3a3a;
+            --grey-900: #161616;
+            --white: #ffffff;
+            --success: #18753c;
+            --warning: #b34000;
+            --info: #0063cb;
+            --font-main: 'Marianne', Arial, sans-serif;
+            --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px;
+            --s-5: 24px; --s-6: 32px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--grey-50);
+            color: var(--grey-900);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        /* ── En-tête ── */
+        .rf-header {
+            background: var(--white);
+            border-bottom: 3px solid var(--blue-france);
+            padding: var(--s-3) var(--s-5);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 4px rgba(0,0,50,0.08);
+        }
+        .rf-header-main { display: flex; align-items: center; gap: var(--s-5); }
+        .rf-logo-block {
+            display: flex; align-items: center; gap: var(--s-3);
+            border-right: 1px solid var(--grey-200); padding-right: var(--s-5);
+        }
+        .rf-logo-marianne { width: 32px; height: 32px; }
+        .rf-logo-text { line-height: 1.2; }
+        .rf-logo-text strong {
+            display: block; font-size: 12px; font-weight: 700;
+            color: var(--blue-france); text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .rf-logo-text span { display: block; font-size: 10px; color: var(--grey-600); font-weight: 400; }
+        .rf-page-title { line-height: 1.2; }
+        .rf-page-title h1 { font-size: 15px; font-weight: 700; color: var(--grey-900); letter-spacing: -0.01em; }
+        .rf-page-title .rf-subtitle { font-size: 11px; color: var(--grey-600); font-weight: 400; }
+        .rf-header-controls { display: flex; align-items: center; gap: var(--s-4); }
+
+        .rf-badge {
+            display: inline-flex; align-items: center; gap: var(--s-1);
+            padding: 3px 10px; border-radius: 2px; font-size: 10px;
+            font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+        }
+        .rf-badge-info { background: var(--blue-france-light); color: var(--blue-france); border: 1px solid #c5d0f0; }
+        .rf-timestamp-live {
+            font-family: 'Courier New', monospace; font-size: 11px; color: var(--grey-600);
+            border: 1px solid var(--grey-200); padding: 3px 10px; border-radius: 2px; background: var(--grey-50);
+        }
+
+        /* ── Toolbar / onglets principaux ── */
+        .rf-toolbar {
+            background: var(--white); border-bottom: 1px solid var(--grey-200);
+            padding: 0 var(--s-5); height: 40px; display: flex;
+            align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .rf-toolbar-left { display: flex; align-items: stretch; height: 100%; }
+        .rf-tab {
+            padding: 0 var(--s-4); font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+            text-transform: uppercase; color: var(--grey-600); background: transparent; border: none;
+            cursor: pointer; display: flex; align-items: center; gap: var(--s-2);
+            border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+            font-family: var(--font-main); white-space: nowrap;
+        }
+        .rf-tab:hover { color: var(--blue-france); }
+        .rf-tab.active { color: var(--blue-france); border-bottom-color: var(--blue-france); }
+
+        /* ── Contenu principal ── */
+        .rf-main {
+            flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+        }
+        .rf-main-panel { display: none; flex: 1; flex-direction: column; min-height: 0; }
+        .rf-main-panel.active { display: flex; }
+
+        /* ── Onglets secondaires (Personne / Véhicule) ── */
+        .rf-subtabs {
+            display: flex; align-items: stretch; height: 36px;
+            background: var(--white); border-bottom: 1px solid var(--grey-200);
+            padding: 0 var(--s-5); flex-shrink: 0;
+        }
+        .rf-subtab {
+            padding: 0 var(--s-4); font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+            text-transform: uppercase; color: var(--grey-600); background: transparent; border: none;
+            cursor: pointer; display: flex; align-items: center; gap: var(--s-2);
+            border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+            font-family: var(--font-main);
+        }
+        .rf-subtab:hover { color: var(--info); }
+        .rf-subtab.active { color: var(--info); border-bottom-color: var(--info); }
+
+        .rf-subpanel { display: none; }
+        .rf-subpanel.active { display: block; }
+
+        /* ── Panneau formulaire ── */
+        .rf-form-wrap {
+            flex: 1; overflow-y: auto; padding: var(--s-5);
+        }
+        .rf-form-wrap::-webkit-scrollbar { width: 5px; }
+        .rf-form-wrap::-webkit-scrollbar-track { background: var(--grey-50); }
+        .rf-form-wrap::-webkit-scrollbar-thumb { background: var(--grey-200); border-radius: 2px; }
+
+        .rf-form-card {
+            background: var(--white); border: 1px solid var(--grey-200);
+            border-radius: 3px; padding: var(--s-5); max-width: 900px; margin: 0 auto;
+        }
+
+        /* ── Sections ── */
+        .rf-section { margin-bottom: var(--s-5); }
+        .rf-section:last-of-type { margin-bottom: 0; }
+        .rf-section-title {
+            font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--blue-france); margin-bottom: var(--s-3); padding-bottom: var(--s-2);
+            border-bottom: 2px solid var(--blue-france-light);
+        }
+
+        /* ── Champs ── */
+        .rf-grid { display: grid; gap: var(--s-3); }
+        .rf-grid-2 { grid-template-columns: 1fr 1fr; }
+        .rf-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .rf-grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+        .rf-form-group { display: flex; flex-direction: column; gap: 5px; }
+
+        label {
+            font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+            text-transform: uppercase; color: var(--grey-600);
+        }
+
+        input, select, textarea {
+            width: 100%; padding: 8px 10px;
+            background: var(--white); border: 1px solid var(--grey-400);
+            border-radius: 0; color: var(--grey-900);
+            font-family: var(--font-main); font-size: 13px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--blue-france);
+            box-shadow: 0 0 0 2px var(--blue-france-light);
+        }
+        input::placeholder, textarea::placeholder { color: var(--grey-400); }
+
+        select {
+            cursor: pointer; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px;
+            background-color: var(--white);
+        }
+        select option { background: var(--white); color: var(--grey-900); }
+
+        textarea { min-height: 64px; resize: none; }
+
+        /* ── Bouton submit ── */
+        .rf-submit-btn {
+            display: flex; align-items: center; justify-content: center; gap: var(--s-2);
+            margin-top: var(--s-5); padding: 10px var(--s-5);
+            background: var(--blue-france); border: none; border-radius: 0;
+            color: var(--white); font-family: var(--font-main); font-size: 13px;
+            font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .rf-submit-btn:hover { background: var(--blue-france-hover); }
+        .rf-submit-btn:active { transform: translateY(1px); }
+
+        /* ── Panel carte ── */
+        .rf-map-wrap {
+            flex: 1; display: flex; min-height: 0;
+        }
+        #leaflet-map {
+            flex: 1; width: 100%; height: 100%;
+        }
+
+        /* ── Footer ── */
+        .rf-footer {
+            background: var(--blue-france); padding: 0 var(--s-5); height: 28px;
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+        }
+        .rf-footer-left { display: flex; align-items: center; gap: var(--s-5); }
+        .rf-footer-item {
+            font-size: 9px; color: rgba(255,255,255,0.65); font-family: 'Courier New', monospace;
+            letter-spacing: 0.06em;
+        }
+        .rf-footer-item strong { color: var(--white); }
+        .rf-footer-right { font-size: 9px; color: rgba(255,255,255,0.45); font-family: 'Courier New', monospace; }
+
+        /* ── Écran fin d'enquête ── */
+        #reset-btn {
+            position: fixed;
+            bottom: 12px;
+            right: 12px;
+            z-index: 10000;
+            width: 32px; height: 32px;
+            font-size: 18px;
+            background: rgba(0,0,0,0.05);
+            color: rgba(0,0,0,0.2);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+        #reset-btn:hover {
+            background: rgba(0,0,0,0.12);
+            color: rgba(0,0,0,0.6);
+        }
+
+        #finEnquete {
+            display: none;
+            position: fixed; inset: 0; z-index: 9999;
+            background: var(--white);
+            flex-direction: column; align-items: center; justify-content: center;
+            gap: var(--s-5); padding: var(--s-7);
+            text-align: center;
+        }
+        #finEnquete.visible { display: flex; }
+        #finEnquete .fin-icon {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: var(--blue-france-light);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px;
+        }
+        #finEnquete h2 {
+            font-size: 36px; font-weight: 700; color: var(--blue-france);
+            letter-spacing: -0.02em;
+        }
+        #finEnquete p {
+            font-size: 22px; color: var(--grey-600); max-width: 680px; line-height: 1.7;
+        }
+        #finEnquete .fin-badge {
+            background: var(--blue-france); color: var(--white);
+            font-size: 18px; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; padding: 16px 40px; border-radius: 2px;
+            border-left: 4px solid var(--red-marianne);
+        }
+
+        @media (max-width: 768px) {
+            .rf-grid-2, .rf-grid-3, .rf-grid-4 { grid-template-columns: 1fr; }
+        }
